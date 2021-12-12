@@ -226,7 +226,7 @@ Once we have the maze file loaded into memory we need to print it to the screen.
 One way to do that is to iterate over each entry in the `maze` slice and print it. This can be conveniently done with the `range` operator:
 
 ```go
-func printScreen() {
+func draw() {
     for _, line := range maze {
         fmt.Println(line)
     }
@@ -249,14 +249,14 @@ Since in this case we only care about the content and not the index, we can safe
 
 ## Task 03: Updating the game loop
 
-Now that we have both `loadMaze` and `printScreen` functions, we should update the `main` function to initialize the maze and print it on the game loop. See the code below:
+Now that we have both `loadMaze` and `draw` functions, we should update the `main` function to initialize the maze and print it on the game loop. See the code below:
 
 ```go
 func main() {
-    // initialise game
+    // initialize game
 
     // load resources
-    err := loadMaze("maze01.txt")
+    err := loadMaze("maze.txt")
     if err != nil {
         log.Println("failed to load maze:", err)
         return
@@ -265,7 +265,7 @@ func main() {
     // game loop
     for {
         // update screen
-        printScreen()
+        draw()
 
         // process input
 
