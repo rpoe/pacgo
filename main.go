@@ -25,7 +25,7 @@ func loadMaze(file string) error {
 	return nil
 }
 
-func printScreen() {
+func draw() {
 	for _, line := range maze {
 		fmt.Println(line)
 	}
@@ -35,7 +35,7 @@ func main() {
 	// initialize game
 
 	// load resources
-	err := loadMaze("maze01.txt")
+	err := loadMaze("maze.txt")
 	if err != nil {
 		log.Println("failed to load maze:", err)
 		return
@@ -44,7 +44,7 @@ func main() {
 	// game loop
 	for {
 		// update screen
-		printScreen()
+		draw()
 
 		// process input
 
