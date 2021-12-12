@@ -184,4 +184,12 @@ Please note that if you hit Ctrl+C by any chance the program will terminate with
 
 If you get into that situation either close the terminal and reopen it or just run the game again and exit gracefully using the `ESC` key.
 
-[Take me to step 03!](../step03/README.md)
+## Next step
+
+Congratulations, step 03 is complete!
+
+Run the following command on your terminal to go to step 04:
+
+```sh
+$ git checkout step04
+```
