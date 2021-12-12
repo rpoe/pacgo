@@ -43,7 +43,7 @@ To enable the cbreak mode we are going to call an external command that controls
 Here is the definition of our `init`:
 
 ```go
-func initialise() {
+func prepareTerminal() {
     cbTerm := exec.Command("stty", "cbreak", "-echo")
     cbTerm.Stdin = os.Stdin
 
@@ -63,7 +63,7 @@ The `log.Fatalln` function will terminate the program after printing the log, in
 Restoring the cooked mode is a pretty straightforward process. It is the same as enabling the cbreak mode, but with the flags reversed:
 
 ```go
-func cleanup() {
+func restoreTerminal() {
     cookedTerm := exec.Command("stty", "-cbreak", "echo")
     cookedTerm.Stdin = os.Stdin
 
@@ -78,12 +78,16 @@ Now we need to call both functions in the `main` function:
 
 ```go
 func main() {
-    // initialise game
-    initialise()
-    defer cleanup()
-
     // load resources
     // ...
+
+    prepareTerminal()
+    defer restoreTerminal()
+
+    // game loop
+    for {
+        // ...
+    }
 ```
 
 ## Task 03: Reading from Stdin
@@ -170,7 +174,7 @@ Words starting with a lower case character are private to the package defining i
 We will update the printScreen function to call `simpleansi.ClearScreen` before printing, so we are sure to be using a blank screen each frame:
 
 ```go
-func printScreen() {
+func draw() {
     simpleansi.ClearScreen()
     for _, line := range maze {
         fmt.Println(line)
