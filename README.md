@@ -1,77 +1,232 @@
-# Pac Go
+# Step 04: Adding Movement
 
-A Pac Man clone written in Go (with emojis!)
+In this lesson you will learn how to:
 
-![screenshot](./screenshot.jpg)
+- Create a struct
+- Use the switch statement
+- Handle the arrow keys
+- Use named return values
 
-## Introduction
+## Overview
 
-Welcome to Pac Go! This project is a tutorial to introduce people to the [Go programming language](https://golang.org).
+We have a maze, we can quit the game gracefully... but nothing very exciting is happening, right? So let's spice this thing up a bit and add some movement!
 
-### Why a new tutorial?
+In this step we are adding the player character and enabling its movement with the arrow keys.
 
-We have a lot of great tutorials out there, but the whole idea about this tutorial is to make something different and fun while learning Go. Yes, we need to know about APIs and CRUDs on a daily basis, but while tackling something new, why not making a game instead?
+## Task 01: Tracking player position
 
-Go is one of the languages that is known for making programming fun again, and what could be more fun than writing a game? Interested? Great, let's move on!
+The first step in our journey is to create a variable to hold the player data. Since we will be tracking 2D coordinates (row and column), we will define a struct to hold that information:
 
-We will be writing a Pac Man clone for the terminal. While writing a game you are exposed to several interesting requirements that make a very good ground for exploring many features of the language, including input, output, functions, pointers, concurrency and a bit of math.
+```go
+type sprite struct {
+    row int
+    col int
+}
 
-You also learn a bit more about the terminal and its magical escape sequences.
-
-### Conference Talks
-
-If you want to have a look at the tutorial in a talk format before trying (about 25 minutes), try one of the links below:
-
-1. [Google Cloud Next UK '19](https://cloud.withgoogle.com/next/uk/sessions?session=DZ224), London, UK (November, 21st 2019)
-1. [London Gophers](https://youtu.be/SM8LTMnB4x0), London, UK
-1. [GoWayFest 3.0](https://youtu.be/0qvW4kIlS8I), Minsk, Belarus
-1. [GothamGo 2019](https://youtu.be/GH0DlCKTppE), New York City, NY, USA
-
-### License
-
-See [LICENSE](LICENSE).
-
-### Contacting the Author
-
-If you have any questions, please reach out to me at [daniela.petruzalek@gmail.com](mailto:daniela.petruzalek@gmail.com). I'm also on Twitter as [@danicat83](https://twitter.com/danicat83).
-
-## Getting Started
-
-### Pre-requisites
-
-It's recommended to have:
-- Basic understanding on how programming languages work, as we won't be covering the basics
-- Basic terminal knowledge (know how to use command line applications)
-
-Of course, if you don't have the above, but is a curious spirit and want to try anyway, please feel free to do so.
-
-### Compatibility Warning - Windows
-
-This tutorial has been tested on both **Linux** and **Mac OS X** environments. For Windows environments we recommend using WSL (Windows Subsystem for Linux).
-
-### Setup
-
-In order to start, make sure you have Go installed in your system.
-
-If you don't, please follow the instructions in [golang.org](https://golang.org)
-
-### How to use this tutorial
-
-In every step, we will describe the task in the README.md file followed by the code that does it and an explanation of how it works.
-
-Every step is located in its separate branch except for this one. In order to switch to a given step, execute the following command:
-
-```sh
-$ git checkout stepXX
+var player sprite
 ```
 
-Where `stepXX` is the step you want to execute.
+We are also defining the player as a global variable, just for the sake of simplicity.
 
-When you are ready to start execute in your terminal:
+Next we need to capture the player position as soon as we load the maze, in the `loadMaze` function:
 
-```sh
-git checkout step00
+```go
+// traverse each character of the maze and create a new player when it locates a `P`
+for row, line := range maze {
+    for col, char := range line {
+        switch char {
+        case 'P':
+            player = sprite{row, col}
+        }
+    }
+}
 ```
 
+Note that this time we are using the full form of the `range` operator, as we are interested in which row and column we found the player.
+
+Here is the complete `loadMaze` just for reference:
+
+```go
+func loadMaze(file string) error {
+    f, err := os.Open(file)
+    if err != nil {
+        return err
+    }
+    defer f.Close()
+
+    scanner := bufio.NewScanner(f)
+    for scanner.Scan() {
+        line := scanner.Text()
+        maze = append(maze, line)
+    }
+
+    for row, line := range maze {
+        for col, char := range line {
+            switch char {
+            case 'P':
+                player = sprite{row, col}
+            }
+        }
+    }
+
+    return nil
+}
+```
+
+---
+
+### Optional: A note about visibility
+
+We are keeping things simple here just for the sake of the tutorial. Since everything is a single file we are not taking into account the visibility of variables, i.e., if they are public or private.
+
+Nevertheless, Go has an interesting mechanic in regards to defining visibility. Instead of having a public keyword, it considers public every symbol whose name starts with a capital letter. On the other hand, if a name starts with a lowercase character, it is a private symbol.
+
+That's why every library function name we've used so far begins with a capital letter. That's also why your IDE may complain about missing comments if you define any variable, function or type with an initial uppercase character. In the Go idiom, public symbols should always be commented, as those are later extracted to become the package documentation.
+
+In this particular case, we are using lowercase symbols for all our variables, types and functions since it doesn't make any sense to export a symbol from the package `main`.
+
+---
+
+## Task 02: Handling arrow key presses
+
+Next, we need to modify `readInput` to handle the arrow keys:
+
+```go
+if cnt == 1 && buffer[0] == 0x1b {
+    return "ESC", nil
+} else if cnt >= 3 {
+    if buffer[0] == 0x1b && buffer[1] == '[' {
+        switch buffer[2] {
+        case 'A':
+            return "UP", nil
+        case 'B':
+            return "DOWN", nil
+        case 'C':
+            return "RIGHT", nil
+        case 'D':
+            return "LEFT", nil
+        }
+    }
+}
+```
+
+The escape sequence for the arrow keys are 3 bytes long, starting with `ESC+[` and then a letter from A to D.
+
+We now need a function to handle the movement:
+
+```go
+func makeMove(oldRow, oldCol int, dir string) (newRow, newCol int) {
+    newRow, newCol = oldRow, oldCol
+
+    switch dir {
+    case "UP":
+        newRow = newRow - 1
+        if newRow < 0 {
+            newRow = len(maze) - 1
+        }
+    case "DOWN":
+        newRow = newRow + 1
+        if newRow == len(maze) {
+            newRow = 0
+        }
+    case "RIGHT":
+        newCol = newCol + 1
+        if newCol == len(maze[0]) {
+            newCol = 0
+        }
+    case "LEFT":
+        newCol = newCol - 1
+        if newCol < 0 {
+            newCol = len(maze[0]) - 1
+        }
+    }
+
+    if maze[newRow][newCol] == '#' {
+        newRow = oldRow
+        newCol = oldCol
+    }
+
+    return
+}
+```
+
+Note: If you are used to the switch statement in other languages, please beware that in Go there is an implicit `break` after each `case` condition. So we don't need to explicitly break after each block. If we want to fall through the next `case` block we can use the `fallthrough` keyword.
+
+The function above takes advantage of `named return values` to return the new position (`newRow` and `newCol`) after the move. Basically the function "tries"  the move first, and if by any chance the new position hits a wall (`#`) the move is cancelled.
+
+It also handles the property that if the character moves outside the range of the maze it appears on the opposite side.
+
+The last piece in the movement puzzle is to define a function to move the player:
+
+```go
+func movePlayer(dir string) {
+    player.row, player.col = makeMove(player.row, player.col, dir)
+}
+```
+
+## Task 03: Updating the maze
+
+We have all the movement logic in place, but we need to make the screen reflect that. We will refactor the `printScreen` function to print only the things that we want to print, instead of the whole map.
+
+That will give us more control, enabling us to print the player at an arbitrary position with the `moveCursor` function. See the code below:
+
+```go
+func printScreen() {
+    simpleansi.ClearScreen()
+    for _, line := range maze {
+        for _, chr := range line {
+            switch chr {
+            case '#':
+                fmt.Printf("%c", chr)
+            default:
+                fmt.Print(" ")
+            }
+        }
+        fmt.Println()
+    }
+
+    simpleansi.MoveCursor(player.row, player.col)
+    fmt.Print("P")
 
 
+    // Move cursor outside of maze drawing area
+    simpleansi.MoveCursor(len(maze)+1, 0)
+}
+```
+
+For the time being, we are ignoring anything that is not a wall or the player.
+
+## Task 04: Animation!
+
+Finally, we need to call `movePlayer` from the game loop:
+
+```go
+// game loop
+for {
+    // update screen
+    printScreen()
+
+    // process input
+    input, err := readInput()
+    if err != nil {
+        log.Println("error reading input:", err)
+        break
+    }
+
+    // process movement
+    movePlayer(input)
+
+    // process collisions
+
+    // check game over
+    if input == "ESC" {
+        break
+    }
+
+    // repeat
+}
+```
+
+We are good to Go!
+
+[Take me to step 04!](../step04/README.md)
