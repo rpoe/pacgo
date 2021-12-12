@@ -4,10 +4,11 @@ In this lesson you will learn how to:
 
 - Run your first `go` program
 - Work with go modules
+- Build (compile) your first program
 
 ## Task 01: main.go
 
-We are going to start by laying the ground a skeleton of what a game program looks like.
+As in any development language tutorial, we are going to start by running a "Hello world" type of program. This is what it looks like in go:
 
 ```go
 package main
@@ -15,30 +16,10 @@ package main
 import "fmt"
 
 func main() {
-    // initialize game
-
-    // load resources
-
-    // game loop
-    for {
-        // update screen
-
-        // process input
-
-        // process movement
-
-        // process collisions
-
-        // check game over
-
-        // Temp: break infinite loop
-        fmt.Println("Hello, Pac Go!")
-        break
-
-        // repeat
-    }
+    fmt.Println("hello, world!")
 }
 ```
+Create a file named `main.go` and copy and paste the code above.
 
 ### Running your first Go program
 
@@ -46,18 +27,44 @@ Now that we have a `main.go` file (`.go` is the file extension for Go source cod
 
 ```sh
 $ go run main.go
-Hello, Pac Go!
+hello, world!
 ```
 
-That's how we run a single file in Go. You can also build it as an executable program with the command `go build`. If you run `go build` it will compile the files in the current directory in a binary with the name of the directory. Then you can run it as a regular program, for example:
+Note: although it might look like the `go` command line tool is interpreting the code we just wrote, it is actually compiling `main.go` to a temporary binary file and running it under the hood.
+
+If you run code with `go run` just make sure to include all the needed files in the same command line, as it won't automatically add any files that are not specified.
+
+For example, in order to use `go run` with two files `a.go` and `b.go` you should type:
+
+```sh
+$ go run a.go b.go
+```
+
+## Task 02: Building your first Go program
+
+Now that we know how to run a file with `go run`, we are going to learn how to build an executable for you program. No surprisingly, the command for doing that is `go build`. But before we can use `go build`, we need to setup our Go modules.
+
+Go modules is how a go program track its dependencies. It also gives you ways to manage the version of your releases. 
+
+Note: The full use of go modules is out of the scope of this tutorial. If you want to learn more about `go module`, please refer to the official docs: https://go.dev/ref/mod
+
+In order to initialize a go module you need to give it a name. So in your console type:
+
+```sh
+$ go mod init github.com/your-user-name/pacgo
+```
+
+Note: replace `your-user-name` with yours :)
+
+After running that program you should see a new file called `go.mod` in your current directory.
+
+Now you will be able to `build` your executable with `go build`. The executable name will be the last name in it's module name. In the case above is `pacgo`.
 
 ```sh
 $ go build
 $ ./pacgo
-Hello, Pac Go!
+hello, world!
 ```
-
-For the purposes of this tutorial we are using only a single file of code (`main.go`), so you may use either `go build` and run the command or just `go run main.go` as it does both automatically.
 
 ### Understanding the program
 
@@ -91,17 +98,23 @@ for {
 }
 ```
 
-We can exit an infinite loop with a `break` statement. We are using it in the sample code to end the infinite loop after printing "Hello, Pac Go!" with the `Println` function from the `fmt` package (comments omitted for brevity):
+We can exit an infinite loop with a `break` statement. For example. the code below has the same effect as our `hello, world!` application written in task 01.
 
 ```go
 func main() {
     for {
-        fmt.Println("Hello, Pac Go!")
+        fmt.Println("hello, world")
         break
     }
 }
 ```
 
-Of course, in this case the infinite loop with a non-conditional break is pointless, but it will make sense in the next steps!
+## Next step
 
 Congratulations, step 00 is complete!
+
+Run the following command to go to step 01:
+
+```sh
+$ git checkout step01
+```
